@@ -15,12 +15,10 @@ if [ $REMOTE_HAS_INPUTRC == False ]; then
     ssh $HOST 'echo \"\\e[B\": history-search-forward >> .inputrc'
 fi
 
-echo "Installing useful packages:"
-USE_DNF=False
 PACKAGES="git nano tmux"
-echo $PACKAGES
-ssh -q $HOST "which dnf 2>/dev/null >/dev/null" && USE_DNF=True 
-if [USE_DNF=False]; then
+echo "Installing useful packages: $PACKAGES"
+DNF_PATH=`ssh $HOST which dnf`
+if [[ ! -z $DNF_PATH ]]; then
     ssh $HOST "sudo dnf -y install $PACKAGES"
 else
     ssh $HOST "sudo apt update && sudo apt -y install $PACKAGES"
