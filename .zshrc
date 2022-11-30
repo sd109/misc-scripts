@@ -9,7 +9,7 @@ autoload -Uz compinit && compinit
 export PS1="%F{blue}%n%f %F{yellow}%1~ %#%f "
 
 # Remove duplicate entries from shell history
-setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
 setopt INC_APPEND_HISTORY
 setopt SHARE_HISTORY
 SAVEHIST=10000
