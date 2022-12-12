@@ -49,3 +49,8 @@ echo "Adding extra settings to .bashrc:"
 ssh $HOST "echo HISTSIZE=10000 | tee -a .bashrc"
 #Force history to be appended to after each command instead of on session logout
 ssh $HOST "echo PROMPT_COMMAND=\'history -a\' | tee -a .bashrc"
+
+echo "Installing miniconda3"
+ssh $HOST "curl -LO https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+ssh $HOST "bash Miniconda3-latest-Linux-x86_64.sh -bu"
+ssh $HOST "~/.miniconda3/bin/conda init"
