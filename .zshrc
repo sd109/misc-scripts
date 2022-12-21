@@ -26,8 +26,8 @@ bindkey "^[[A" history-beginning-search-backward
 bindkey "^[[B" history-beginning-search-forward
 
 # Python venv aliases
-alias openstack-env='source ~/py-venvs/openstack/bin/activate'
-alias ansible-env='source ~/py-venvs/ansible/bin/activate'
+alias openstack-env='source ~/py-venvs/openstack-env/bin/activate'
+alias ansible-env='source ~/py-venvs/ansible-env/bin/activate'
 
 # Add mysql-client exe to path
 export PATH=$PATH:/opt/homebrew/opt/mysql-client/bin/
