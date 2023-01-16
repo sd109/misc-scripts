@@ -29,5 +29,9 @@
         block: |
           alias k=kubectl
           alias ka="kubectl apply -f"
+          # Enable kubectl auto-completion
+          source <(kubectl completion bash)
+          # Extend auto-completion to 'k=kubectl' alias
+          complete -o default -F __start_kubectl k
         create: true
         mode: 0644
