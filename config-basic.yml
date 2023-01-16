@@ -23,22 +23,30 @@
     - name: Ensure desired config is in .bash_profile
       ansible.builtin.blockinfile:
         path: ~/.bash_profile
-        marker: "# {mark} Basic aliases"
+        marker: "# {mark}: Basic aliases"
         block: |
           [[ -f ~/.profile ]] && source ~/.profile
           alias ll="ls -l"
           alias la="ls -a"
-        insertafter: EOF
         create: true
         mode: 0644
 
     - name: Ensure .inputrc file is configured
       ansible.builtin.blockinfile:
         path: ~/.inputrc
-        marker: "# {mark} Enable history search with arrow keys"
+        marker: "# {mark}: Enable history search with arrow keys"
         block: |
           "\e[A": history-search-backward
           "\e[B": history-search-forward
-        insertafter: EOF
+        create: true
+        mode: 0644
+
+    - name: Ensure .tmux.conf file is configured
+      ansible.builtin.blockinfile:
+        path: ~/.tmux.conf
+        marker: "# {mark}: Ansible managed tmux config"
+        block: |
+          setw -g mouse on # Auto-switch to scroll mode when mouse scrolling detected
+          set-option -g history-limit 25000 #Increase size of scroll back history
         create: true
         mode: 0644
