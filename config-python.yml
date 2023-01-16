@@ -18,3 +18,5 @@
     - name: Ensure miniconda is initialized
       ansible.builtin.command: ~/miniconda3/bin/conda init
       changed_when: false # Conda init script is idempotent by itself
+
+    # - name: Ensure openstack python venv is present

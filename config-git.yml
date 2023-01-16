@@ -3,21 +3,19 @@
   hosts: all
   vars:
     ssh_key: ~/.ssh/keys/github_id_rsa
+    # ssh_key: ~/.ssh/id_rsa
   tasks:
-
-    - name: Debugging
-      ansible.builtin.debug:
-        var: github_ssh_key
 
     - name: Ensure github ssh key is present
       ansible.builtin.copy:
-        src: "{{ github_ssh_key }}"
+        src: "{{ ssh_key }}"
         dest: ~/.ssh/github_id_rsa
         mode: 0600
 
     - name: Ensure github ssh config entry exists
       ansible.builtin.blockinfile:
         path: ~/.ssh/config
+        marker: "# {mark}: Ansible managed github config"
         block: |
           Host github.com
             HostName github.com

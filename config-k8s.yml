@@ -3,7 +3,7 @@
   hosts: all
   tasks:
 
-    - name: Ensure kubectl is installed on Ubuntu
+    - name: Ensure k8s tools are snap-installed on Ubuntu
       become: true
       community.general.snap:
         name:
