@@ -1,0 +1,34 @@
+---
+- name: Ensure kubernetes tooling is configured
+  hosts: all
+  tasks:
+
+    - name: Ensure kubectl is installed on Ubuntu
+      become: true
+      community.general.snap:
+        name:
+          - kubectl
+          - helm
+          - kubectx
+          - k9s
+        state: present
+        classic: true
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Ensure useful packages system packages are present
+      become: true
+      ansible.builtin.package:
+        name:
+          - kubecolor
+        state: present
+
+    - name: Ensure desired config is in .bash_profile
+      ansible.builtin.blockinfile:
+        path: ~/.bash_profile
+        marker: "# {mark} Kubernetes aliases"
+        block: |
+          alias k=kubectl
+          alias ka="kubectl apply -f"
+        insertafter: EOF
+        create: true
+        mode: 0644

@@ -1,0 +1,28 @@
+---
+- name: Ensure multipass host configured
+  hosts: localhost
+  vars:
+    # ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    multipass_key_path: /var/root/Library/Application\ Support/multipassd/ssh-keys/id_rsa
+  tasks:
+
+    # - name: Debug
+    #   ansible.builtin.debug:
+    #     var: ssh_key
+
+    - name: Test
+      ansible.builtin.command: "ssh ubuntu@192.168.64.9 -i {{ multipass_key_path }} -- ls"
+      changed_when: true
+
+    # - name: Write key to tmp file
+    #   ansible.builtin.command: "echo {{ ssh_key }} >> ./tmp-key.pub"
+    #   changed_when: true
+
+    # - name: Copy file to multipass vm
+    #   ansible.builtin.command: "multipass transfer ./tmp-key.pub"
+    #   changed_when: true
+
+    # - name: "Ensure ssh key is present on multipass vm"
+    #   # ansible.builtin.shell: "cat ~/.ssh/id_rsa.pub | multipass exec test-vm -- tee -a ~/.ssh/authorized_keys"
+    #   ansible.builtin.shell: multipass exec test-vm -- echo '{{ ssh_key }}' \| tee -a ~/test.txt
+    #   changed_when: true

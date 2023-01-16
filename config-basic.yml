@@ -1,0 +1,44 @@
+---
+
+- name: Ensure basic config and packages are present
+  hosts: all
+  tasks:
+
+    - name: Update apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Ensure useful packages system packages are present
+      become: true
+      ansible.builtin.package:
+        name:
+          - git
+          - python3-dev
+          - tmux
+          - nano
+        state: present
+
+    - name: Ensure desired config is in .bash_profile
+      ansible.builtin.blockinfile:
+        path: ~/.bash_profile
+        marker: "# {mark} Basic aliases"
+        block: |
+          [[ -f ~/.profile ]] && source ~/.profile
+          alias ll="ls -l"
+          alias la="ls -a"
+        insertafter: EOF
+        create: true
+        mode: 0644
+
+    - name: Ensure .inputrc file is configured
+      ansible.builtin.blockinfile:
+        path: ~/.inputrc
+        marker: "# {mark} Enable history search with arrow keys"
+        block: |
+          "\e[A": history-search-backward
+          "\e[B": history-search-forward
+        insertafter: EOF
+        create: true
+        mode: 0644
