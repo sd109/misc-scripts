@@ -42,6 +42,6 @@
       become: true
       ansible.builtin.package:
         name:
-          - python3-git-repo-updater # Apt packaging of gitup tool
+          - python3-git-repo-updater # Apt packaging of gitup tool (only on Ubuntu >= 22.04)
         state: present
       when: ansible_distribution == 'Ubuntu'

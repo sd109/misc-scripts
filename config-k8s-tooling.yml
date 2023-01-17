@@ -23,12 +23,12 @@
         classic: true
       when: ansible_distribution == 'Ubuntu'
 
-    - name: Ensure useful packages system packages are present
-      become: true
-      ansible.builtin.package:
-        name:
-          - kubecolor
-        state: present
+    # - name: Ensure useful packages system packages are present
+    #   become: true
+    #   ansible.builtin.package:
+    #     name:
+    #       - kubecolor # Doesn't seem to exist on Ubuntu 20.04
+    #     state: present
 
     - name: Ensure desired config is in .bash_profile
       ansible.builtin.blockinfile:
