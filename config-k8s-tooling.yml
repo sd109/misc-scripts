@@ -3,6 +3,14 @@
   hosts: all
   tasks:
 
+    - name: Ensure snap is installed on Ubuntu
+      become: true
+      ansible.builtin.package:
+        name:
+          - snapd
+        state: present
+      when: ansible_distribution == 'Ubuntu'
+
     - name: Ensure k8s tools are snap-installed on Ubuntu
       become: true
       community.general.snap:

@@ -22,3 +22,26 @@
             IdentityFile ~/.ssh/github_id_rsa
         create: true
         mode: 0644
+
+    - name: Ensure .gitconfig file is populated
+      ansible.builtin.blockinfile:
+        path: ~/.gitconfig
+        marker: "# {mark}: Ansible managed config"
+        block: |
+          [core]
+          editor = vim
+          [user]
+          name = Scott Davidson
+          email = scott@stackhpc.com
+          [editor]
+        create: true
+        mode: 0644
+
+
+    - name: Ensure gitup tool is installed
+      become: true
+      ansible.builtin.package:
+        name:
+          - python3-git-repo-updater # Apt packaging of gitup tool
+        state: present
+      when: ansible_distribution == 'Ubuntu'
