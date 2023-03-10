@@ -100,8 +100,13 @@
       loop:
         - autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 
+
+- name: Add zsh-specific config
+  tags: zsh
+  hosts: all
+  tasks:
     - name: Ensure .zshrc file is configured
-      when: ('macos' in ansible_distribution | lower)
+      when: ansible_distribution == "MacOSX"
       ansible.builtin.blockinfile:
         path: ~/.zshrc
         marker: "# {mark}: Ansible-managed zsh config"
@@ -123,6 +128,9 @@
           setopt INC_APPEND_HISTORY
           setopt SHARE_HISTORY
           SAVEHIST=100000
+
+          # Add gopath to PATH var
+          export PATH=$PATH:~/go/bin
 
         create: true
         mode: 0644
