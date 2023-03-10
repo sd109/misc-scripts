@@ -1,0 +1,280 @@
+---
+- name: Basic host setup
+  hosts: all
+  vars:
+    github_ssh_key: ~/.ssh/keys/github_id_rsa
+  tags: basic
+  tasks:
+
+    - name: Update apt cache
+      become: true
+      ansible.builtin.apt:
+        update_cache: true
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Ensure useful system packages are installed
+      block:
+        - name: Attempt package installs
+          become: true
+          ansible.builtin.package:
+            name:
+              - "{{ item }}"
+            state: present
+          register: package_install_results
+          failed_when: false
+          loop:
+            - nonexistent-package
+            - git
+            - vim
+            - tmux
+            - net-tools
+            - gcc
+            - python3-pip
+            - python3-dev
+            - python3-venv
+
+        - name: Warn about any failed package installations
+          ansible.builtin.debug:
+            msg: "WARNING: Package '{{ item['item'] }}' not found in system package repos }}"
+          when: ('msg' in item.keys() and 'No package matching' in item['msg'])
+          loop: "{{ package_install_results.results }}"
+          loop_control:
+            label: "{{ item.item }}"
+
+    - name: Ensure desired config is in .bashrc
+      ansible.builtin.blockinfile:
+        path: ~/.bashrc
+        marker: "# {mark}: Ansible-managed basic aliases"
+        block: |
+
+          alias ll="ls -l"
+          alias la="ls -a"
+
+          #Increase max size of .bash_history file
+          HISTSIZE=100000
+
+          #Force history to be appended to after each command instead of on session logout
+          PROMPT_COMMAND='history -a'
+
+        create: true
+        mode: 0644
+
+    - name: Ensure .inputrc file is configured
+      ansible.builtin.blockinfile:
+        path: ~/.inputrc
+        marker: "# {mark}: Enable history search with arrow keys"
+        block: |
+
+          # Enable up/down key bash history searching
+          "\e[A": history-search-backward
+          "\e[B": history-search-forward
+          set colored-stats On
+
+        create: true
+        mode: 0644
+
+    - name: Ensure .tmux.conf file is configured
+      ansible.builtin.blockinfile:
+        path: ~/.tmux.conf
+        marker: "# {mark}: Ansible managed tmux config"
+        block: |
+
+          # Auto-switch to scroll mode when mouse scrolling detected
+          setw -g mouse on
+
+          # Increase size of scroll back history
+          set-option -g history-limit 25000
+
+          # Colorize terminal prompt correctly
+          set -g default-terminal "tmux-256color"
+
+        create: true
+        mode: 0644
+
+    - name: Ensure .vimrc file is configured
+      ansible.builtin.lineinfile:
+        path: ~/.vimrc
+        line: "{{ item }}"
+        create: true
+        mode: 0644
+      loop:
+        - autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
+    - name: Ensure .zshrc file is configured
+      when: ('macos' in ansible_distribution | lower)
+      ansible.builtin.blockinfile:
+        path: ~/.zshrc
+        marker: "# {mark}: Ansible-managed zsh config"
+        block: |
+
+          # Basic aliases
+          alias la='ls -a'
+          alias ll='ls -l'
+
+          # Customize terminal prompt
+          PROMPT='%F{green}%*%f:%F{blue}%~%f %% ' #Time and working dir with colour
+
+          # Set up/down arrows to search history containing partially typed command
+          bindkey "^[[A" history-beginning-search-backward
+          bindkey "^[[B" history-beginning-search-forward
+
+          # Configure shell history
+          setopt HIST_IGNORE_ALL_DUPS
+          setopt INC_APPEND_HISTORY
+          setopt SHARE_HISTORY
+          SAVEHIST=100000
+
+        create: true
+        mode: 0644
+
+
+- name: Ensure git is configured
+  hosts: all
+  tags: git
+  tasks:
+
+    - name: Ensure github ssh key is present
+      ansible.builtin.copy:
+        src: "{{ github_ssh_key }}"
+        dest: ~/.ssh/github_id_rsa
+        mode: 0600
+
+    - name: Ensure github ssh config entry exists
+      ansible.builtin.blockinfile:
+        path: ~/.ssh/config
+        marker: "# {mark}: Ansible managed github config"
+        block: |
+          Host github.com
+            HostName github.com
+            IdentityFile ~/.ssh/github_id_rsa
+        create: true
+        mode: 0644
+
+    - name: Ensure .gitconfig file is populated
+      ansible.builtin.blockinfile:
+        path: ~/.gitconfig
+        marker: "# {mark}: Ansible managed config"
+        block: |
+          [core]
+          editor = vim
+          [user]
+          name = Scott Davidson
+          email = scott@stackhpc.com
+          [editor]
+        create: true
+        mode: 0644
+
+
+- name: Install additional tools
+  hosts: all
+  tasks:
+
+    - name: Download miniconda3 installer
+      tags: python
+      ansible.builtin.get_url:
+        url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-{{ ansible_architecture }}.sh
+        dest: ~/install-miniconda3.sh
+        mode: 0755
+
+    - name: Ensure miniconda is installed
+      tags: python
+      ansible.builtin.command:
+        cmd: bash ~/install-miniconda3.sh -b -u
+        creates: ~/miniconda3 # Check miniconda dir is not already present
+
+    - name: Ensure miniconda is initialized
+      tags: python
+      ansible.builtin.command: ~/miniconda3/bin/conda init
+      changed_when: false # Conda init script is idempotent by itself
+
+    - name: Ensure openstack cli is installed
+      tags: openstack
+      vars:
+        openstack_env_dir: ~/openstack-env
+      block:
+
+        - name: Ensure venv exists
+          ansible.builtin.command: python3 -m venv {{ openstack_env_dir }}
+          changed_when: false
+
+        - name: Ensure openstack cli is installed
+          ansible.builtin.pip:
+            name: python-openstackclient
+            virtualenv: "{{ openstack_env_dir }}"
+
+        - name: Ensure venv activate alias exists in .bashrc
+          ansible.builtin.lineinfile:
+            line: alias openstack-env="source {{ openstack_env_dir }}/bin/activate"
+            path: ~/.bashrc
+
+        - name: Generate openstack shell auto-completion script
+          ansible.builtin.shell: "{{ openstack_env_dir }}/bin/openstack complete > openstack-autocomplete.sh"
+          changed_when: false
+
+        - name: Ensure openstack auto-complete script is sourced in .bashrc
+          ansible.builtin.lineinfile:
+            line: source openstack-autocomplete.sh
+            path: ~/.bashrc
+
+
+    - name: Check brew installation is possible on host/arch combo
+      tags: brew
+      ansible.builtin.assert:
+        fail_msg: Brew not available on Arm Linux
+        that: "{{ ansible_architecture == 'x86_64' or 'macos' in ansible_distribution | lower }}"
+
+    - name: Check for existing brew intallation
+      tags: brew
+      ansible.builtin.shell: which brew > /dev/null
+      register: brew_installed
+      changed_when: false
+      failed_when: brew_installed.rc not in [0, 1]
+
+    - name: Ensure brew package manager is installed
+      tags: brew
+      block:
+
+        - name: Fetch and run brew install script (x86 only)
+          ansible.builtin.shell: |
+            NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          changed_when: brew_installed.rc == 1
+
+        - name: Run homebrew's path setup command (x86 only)
+          ansible.builtin.command: /home/linuxbrew/.linuxbrew/bin/brew shellenv
+          register: brew_path_variables
+          changed_when: brew_installed.rc == 1
+
+        - name: Ensure brew is added to path (x86 only)
+          ansible.builtin.blockinfile:
+            path: ~/.bashrc
+            marker: "# {mark}: Ansible managed brew path config"
+            block: "{{ brew_path_variables.stdout }}"
+            create: true
+            mode: 0644
+
+    - name: Ensure useful kubernetes tools are installed via homebrew
+      tags: k8s
+      community.general.homebrew:
+        name:
+          - kubectl
+          - helm
+          - kubectx
+          - k9s
+          - hidetatz/tap/kubecolor
+        state: present
+
+    - name: Ensure desired config is in .bash_profile
+      tags: k8s
+      ansible.builtin.blockinfile:
+        path: ~/.bashrc
+        marker: "# {mark}: Kubernetes aliases"
+        block: |
+          alias k=kubecolor
+          alias ka="kubectl apply -f"
+          # Enable auto-completions
+          source <(kubectl completion bash)
+          source <(helm completion bash)
+          # Extend auto-completion to 'k=kubectl' or 'k=kubecolor' aliases
+          complete -o default -F __start_kubectl k
+        create: true
+        mode: 0644
