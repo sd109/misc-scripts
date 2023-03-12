@@ -1,8 +1,6 @@
 ---
 - name: Basic host setup
   hosts: all
-  vars:
-    github_ssh_key: ~/.ssh/keys/github_id_rsa
   tags: basic
   tasks:
 
@@ -23,7 +21,7 @@
           register: package_install_results
           failed_when: false
           loop:
-            - nonexistent-package
+            # - nonexistent-package
             - git
             - vim
             - tmux
@@ -35,8 +33,10 @@
 
         - name: Warn about any failed package installations
           ansible.builtin.debug:
-            msg: "WARNING: Package '{{ item['item'] }}' not found in system package repos }}"
-          when: ('msg' in item.keys() and 'No package matching' in item['msg'])
+            msg: "WARNING: Installation of package '{{ item['item'] }}' failed }}"
+          when: >
+            ('msg' in item.keys() and 'No package matching' in item['msg'])
+            or ('rc' in item.keys() and item['rc'] != 0)
           loop: "{{ package_install_results.results }}"
           loop_control:
             label: "{{ item.item }}"
@@ -116,6 +116,9 @@
           alias la='ls -a'
           alias ll='ls -l'
 
+          # Enable autocomplete for ssh, git, and others
+          autoload -Uz compinit && compinit
+
           # Customize terminal prompt
           PROMPT='%F{green}%*%f:%F{blue}%~%f %% ' #Time and working dir with colour
 
@@ -139,6 +142,8 @@
 - name: Ensure git is configured
   hosts: all
   tags: git
+  vars:
+    github_ssh_key: ~/.ssh/keys/github_id_rsa
   tasks:
 
     - name: Ensure github ssh key is present
