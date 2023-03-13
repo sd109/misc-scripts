@@ -115,8 +115,9 @@
           # Basic aliases
           alias la='ls -a'
           alias ll='ls -l'
+          alias code='/Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code'
 
-          # Enable autocomplete for ssh, git, and others
+          # Enable autocomplete for ssh, git and others
           autoload -Uz compinit && compinit
 
           # Customize terminal prompt
