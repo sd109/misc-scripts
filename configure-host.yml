@@ -143,26 +143,7 @@
 - name: Ensure git is configured
   hosts: all
   tags: git
-  vars:
-    github_ssh_key: ~/.ssh/keys/github_id_rsa
   tasks:
-
-    - name: Ensure github ssh key is present
-      ansible.builtin.copy:
-        src: "{{ github_ssh_key }}"
-        dest: ~/.ssh/github_id_rsa
-        mode: 0600
-
-    - name: Ensure github ssh config entry exists
-      ansible.builtin.blockinfile:
-        path: ~/.ssh/config
-        marker: "# {mark}: Ansible managed github config"
-        block: |
-          Host github.com
-            HostName github.com
-            IdentityFile ~/.ssh/github_id_rsa
-        create: true
-        mode: 0644
 
     - name: Ensure .gitconfig file is populated
       ansible.builtin.blockinfile:
