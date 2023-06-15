@@ -261,16 +261,19 @@
             create: true
             mode: 0644
 
-    # - name: Ensure useful kubernetes tools are installed via homebrew
-    #   tags: k8s
-    #   community.general.homebrew:
-    #     name:
-    #       - kubectl
-    #       - helm
-    #       - kubectx
-    #       - k9s
-    #       - hidetatz/tap/kubecolor
-    #     state: present
+    - name: Ensure useful kubernetes tools are installed via homebrew
+      tags: k8s
+      community.general.homebrew:
+        # Path resolution changed and started failing around 03/2023 
+        # - not sure what changed but make path explicit for now.
+        path: /home/linuxbrew/.linuxbrew/bin/
+        name:
+          - kubectl
+          - helm
+          - kubectx
+          - k9s
+          - hidetatz/tap/kubecolor
+        state: present
 
     - name: Ensure desired config is in .bash_profile
       tags: k8s
