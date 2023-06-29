@@ -222,7 +222,7 @@
 
         - name: Ensure openstack auto-complete script is sourced in .bashrc
           ansible.builtin.lineinfile:
-            line: source openstack-autocomplete.sh
+            line: source ~/openstack-autocomplete.sh
             path: ~/.bashrc
 
 
