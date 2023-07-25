@@ -219,7 +219,8 @@
               alias osl="openstack server list"
               alias ovl="openstack volume list"
               alias onl="openstack network list"
-              alias ofl="openstack floating ip list"
+              alias ofl="openstack flavor list"
+              alias ofipl="openstack floating ip list"
               alias olbl="openstack loadbalancer list"
             create: true
             mode: 0644
