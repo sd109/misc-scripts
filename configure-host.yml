@@ -227,17 +227,18 @@
         - name: Ensure env activate alias exists in .bashrc
           ansible.builtin.lineinfile:
             line: alias openstack-env="source {{ openstack_env_dir }}/bin/activate && source ~/.openstack_aliases"
-            path: ~/.bashrc
+            path: "~/.{{ 'zsh' if ansible_distribution == 'MacOSX' else 'bash' }}rc"
 
-        - name: Generate openstack shell auto-completion script
-          ansible.builtin.shell: "{{ openstack_env_dir }}/bin/openstack complete > ~/.openstack-autocomplete.sh"
-          changed_when: false
+        - block:
+          - name: Generate openstack shell auto-completion script
+            ansible.builtin.shell: "{{ openstack_env_dir }}/bin/openstack complete > ~/.openstack-autocomplete.sh"
+            changed_when: false
 
-        - name: Ensure openstack auto-complete script is sourced in .bashrc
-          ansible.builtin.lineinfile:
-            line: source ~/.openstack-autocomplete.sh
-            path: ~/.bashrc
-
+          - name: Ensure openstack auto-complete script is sourced in relevant rc file
+            ansible.builtin.lineinfile:
+              line: source ~/.openstack-autocomplete.sh
+              path: ~/.bashrc
+          when: ansible_distribution != "MacOSX"
 
     - name: Check brew installation is possible on host/arch combo
       tags: brew
