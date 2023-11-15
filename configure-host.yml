@@ -167,7 +167,7 @@
           [core]
           editor = vim
           [user]
-          name = Scott Davidson
+          name = sd109
           email = scott@stackhpc.com
           [editor]
         create: true
